@@ -5,6 +5,7 @@
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
+    "postinstall": "node scripts/fix-metro-blacklist.js",
     "start": "react-native start",
     "test": "jest",
     "lint": "eslint ."
@@ -15,6 +16,7 @@
     "react-native-gesture-handler": "^1.4.1",
     "react-native-nfc-manager": "^2.0.0-beta.3",
     "react-native-tts": "^3.0.0",
+    "react-native-vector-icons": "^6.7.0",
     "react-navigation": "^4.0.10",
     "react-navigation-stack": "^1.10.3"
   },

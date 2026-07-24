@@ -96,7 +96,9 @@ function bytesToString(bytes) {
 
 // useful for readable version of Tag UID
 function bytesToHexString(bytes) {
-  let dec, hexstring, bytesAsHexString = '';
+  let dec,
+    hexstring,
+    bytesAsHexString = '';
   for (var i = 0; i < bytes.length; i++) {
     if (bytes[i] >= 0) {
       dec = bytes[i];

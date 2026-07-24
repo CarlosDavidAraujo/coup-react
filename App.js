@@ -3,38 +3,37 @@ import {createStackNavigator} from 'react-navigation-stack';
 import TelaPrincipal from './src/screens/TelaPrincipal';
 import TelaAjuda from './src/screens/TelaAjuda';
 import TelaJogar from './src/screens/TelaJogar';
+import {TEMA} from './src/helpers/Tema';
+import Tts from 'react-native-tts';
+
+// Inicializa o TTS de forma segura esperando o motor nativo carregar
+Tts.getInitStatus()
+  .then(() => {
+    return Tts.setDefaultLanguage('pt-br');
+  })
+  .catch(err => {
+    console.warn('Falha ao inicializar motor ou idioma do TTS:', err);
+  });
 
 const navigator = createStackNavigator(
   {
     Principal: {
       screen: TelaPrincipal,
-      navigationOptions: {
-        title: 'Tela de Menu Principal',
-      },
     },
     Ajuda: {
       screen: TelaAjuda,
-      navigationOptions: {
-        title: 'Tela de Ajuda',
-        headerLeft: null,
-      },
     },
     Jogar: {
       screen: TelaJogar,
-      navigationOptions: {
-        title: 'Tela Ler Informação das cartas',
-        headerLeft: null,
-      },
     },
   },
   {
     initialRouteName: 'Principal',
     defaultNavigationOptions: {
-      title: 'App',
-      headerStyle: {
-        backgroundColor: '#1957e0',
-      },
-      headerTintColor: 'white',
+      headerShown: false,
+    },
+    cardStyle: {
+      backgroundColor: TEMA.colors.background,
     },
   },
 );

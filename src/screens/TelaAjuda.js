@@ -5,101 +5,182 @@ import {
   TouchableOpacity,
   View,
   BackHandler,
+  StatusBar,
+  AccessibilityInfo,
+  findNodeHandle,
 } from 'react-native';
-import {dizerDetalhes} from '../helpers/Carta';
+import {CODIGO_CARTA, dizerDetalhes} from '../helpers/Carta';
 import Tts from 'react-native-tts';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {escutarLeituraNfc, resetStackNavigation} from '../helpers/Auxiliar';
+import {TEMA, obterCoresCarta, obterIconeCarta} from '../helpers/Tema';
+
+const CARTAS_AJUDA = [
+  {codigo: CODIGO_CARTA.DUQUE, nome: 'Duque'},
+  {codigo: CODIGO_CARTA.CAPITAO, nome: 'Capitão'},
+  {codigo: CODIGO_CARTA.ASSASSINO, nome: 'Assassino'},
+  {codigo: CODIGO_CARTA.CONDESSA, nome: 'Condessa'},
+  {codigo: CODIGO_CARTA.EMBAIXADOR, nome: 'Embaixador'},
+];
 
 class TelaAjuda extends React.Component {
   _willBlurSubscription;
+
   constructor(props) {
     super(props);
-    Tts.setDefaultLanguage('pt-br');
-    Tts.speak('Entenda a ação de cada carta');
-    Tts.speak('Tela de ajuda');
-    Tts.speak('Aproxime o celular da carta que deseja ler');
+    Tts.stop();
     escutarLeituraNfc(this.props.navigation);
   }
+
   componentDidMount() {
     this._willBlurSubscription = this.props.navigation.addListener(
       'willBlur',
-      payload =>
+      payload => {
         BackHandler.removeEventListener(
           'hardwareBackPress',
           resetStackNavigation(this.props.navigation),
           Tts.stop(),
-        ),
+        );
+      },
     );
+
+    this._didFocusSubscription = this.props.navigation.addListener(
+      'didFocus',
+      () => {
+        this.focarDuque();
+      },
+    );
+
+    this.focusTimeout = setTimeout(() => {
+      this.focarDuque();
+    }, 500);
   }
+
+  focarDuque = () => {
+    if (this.duqueRef) {
+      const reactTag = findNodeHandle(this.duqueRef);
+      if (reactTag) {
+        AccessibilityInfo.setAccessibilityFocus(reactTag);
+      }
+    }
+  };
+
+  componentWillUnmount() {
+    if (this.focusTimeout) {
+      clearTimeout(this.focusTimeout);
+    }
+    if (this._didFocusSubscription) {
+      this._didFocusSubscription.remove();
+    }
+    if (this._willBlurSubscription) {
+      this._willBlurSubscription.remove();
+    }
+    Tts.stop();
+  }
+
   render() {
     return (
-      <View accessible={true}>
-        <TouchableOpacity
-          style={[styles.btnStyle, styles.assassinoBtn]}
-          onPress={() => dizerDetalhes('As1')}>
-          <Text style={styles.textButton}>Assassino</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.btnStyle, styles.capitaoBtn]}
-          onPress={() => dizerDetalhes('Cp1')}>
-          <Text style={styles.textButton}>Capitão</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.btnStyle, styles.condessaBtn]}
-          onPress={() => dizerDetalhes('Cd1')}>
-          <Text style={styles.textButton}>Condessa</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.btnStyle, styles.duqueBtn]}
-          onPress={() => dizerDetalhes('Dq1')}>
-          <Text style={styles.textButton}>Duque</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.btnStyle, styles.embaixadorBtn]}
-          onPress={() => dizerDetalhes('Em1')}>
-          <Text style={styles.textButton}>Embaixador</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.btnStyle, styles.voltarBtn]}
-          onPress={() => resetStackNavigation(this.props.navigation)}>
-          <Text style={styles.textButton}>Voltar</Text>
-        </TouchableOpacity>
+      <View style={styles.container}>
+        <StatusBar backgroundColor={TEMA.colors.background} barStyle="dark-content" />
+
+        {/* Header customizado */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Voltar"
+            style={styles.backButton}
+            onPress={() => resetStackNavigation(this.props.navigation)}>
+            <Icon name="chevron-left" size={32} color={TEMA.colors.textPrimary} />
+          </TouchableOpacity>
+          <Text
+            accessibilityRole="header"
+            style={styles.headerTitle}>
+            Ajuda
+          </Text>
+        </View>
+
+        {/* Lista de cartas */}
+        <View style={styles.cardList}>
+          {CARTAS_AJUDA.map(carta => {
+             const cores = obterCoresCarta(carta.codigo);
+             const icone = obterIconeCarta(carta.codigo);
+
+             return (
+               <TouchableOpacity
+                 key={carta.codigo}
+                 ref={ref => {
+                   if (carta.codigo === CODIGO_CARTA.DUQUE) {
+                     this.duqueRef = ref;
+                   }
+                 }}
+                 accessibilityRole="button"
+                 accessibilityLabel={`Detalhes de ${carta.nome}`}
+                 style={[styles.cartaBtn, {backgroundColor: cores.bg}]}
+                 onPress={() => dizerDetalhes(carta.codigo)}>
+                 <Icon
+                   name={icone}
+                   size={24}
+                   color={cores.text}
+                   style={styles.cartaIcon}
+                 />
+                 <Text style={[styles.cartaNome, {color: cores.text}]}>
+                  {carta.nome}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  btnStyle: {
-    height: '15%',
-    marginLeft: '2%',
-    marginRight: '2%',
-    marginTop: '2%',
+  container: {
+    flex: 1,
+    padding: TEMA.spacing.lg,
+    backgroundColor: TEMA.colors.background,
   },
-  textButton: {
-    textAlign: 'center',
-    top: '-5%',
-    fontSize: 60,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: TEMA.spacing.md,
+  },
+  backButton: {
+    padding: TEMA.spacing.md,
+    marginRight: TEMA.spacing.xs,
+    marginLeft: -TEMA.spacing.md,
+  },
+  headerTitle: {
+    fontSize: TEMA.fontSize.lg,
     fontWeight: 'bold',
-    color: 'white',
+    color: TEMA.colors.textPrimary,
   },
-  assassinoBtn: {
-    backgroundColor: '#f03800',
+  cardList: {
+    flex: 1,
+    justifyContent: 'center',
   },
-  capitaoBtn: {
-    backgroundColor: '#ac00b2',
+  cartaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: TEMA.borders.radiusButton,
+    paddingVertical: TEMA.spacing.lg,
+    paddingHorizontal: TEMA.spacing.lg,
+    marginBottom: TEMA.spacing.sm,
   },
-  duqueBtn: {
-    backgroundColor: '#f80060',
+  cartaIcon: {
+    marginRight: TEMA.spacing.md,
   },
-  condessaBtn: {
-    backgroundColor: '#5427b7',
+  cartaNome: {
+    fontSize: TEMA.fontSize.lg,
+    fontWeight: 'bold',
   },
-  embaixadorBtn: {
-    backgroundColor: '#00bcd5',
-  },
-  voltarBtn: {
-    backgroundColor: '#009c87',
+  footerNote: {
+    fontSize: TEMA.fontSize.sm,
+    color: TEMA.colors.textMuted,
+    textAlign: 'center',
+    marginTop: TEMA.spacing.md,
+    paddingBottom: TEMA.spacing.md,
   },
 });
 
