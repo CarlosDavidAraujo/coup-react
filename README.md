@@ -59,7 +59,7 @@ Para preparar a sua máquina de desenvolvimento, você precisará instalar as fe
 1. **Baixe ou clone o repositório:**
 
    ```bash
-   git clone <URL_DO_REPOSITORIO>
+   git clone https://github.com/CarlosDavidAraujo/coup-react.git
    cd coup-react
    ```
 
