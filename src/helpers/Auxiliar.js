@@ -44,13 +44,24 @@ export function extrairCodigoCarta(tag) {
 
   if (tag && Array.isArray(tag.ndefMessage)) {
     tag.ndefMessage.forEach(registro => {
+      try {
+        if (registro.payload && registro.payload.length > 0) {
+          let textoDescodificado = Ndef.text.decodePayload(registro.payload);
+          if (textoDescodificado) {
+            textos.push(textoDescodificado);
+          }
+        }
+      } catch (e) {
+   
+      }
+
       textos.push(...extrairTextosDoRegistro(registro));
     });
-
-    textos.push(Ndef.stringify(tag.ndefMessage));
   }
 
-  return normalizarCodigoCarta(textos.join('\n'));
+  const textoBruto = textos.join(' ').replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+
+  return normalizarCodigoCarta(textoBruto);
 }
 
 export function escutarLeituraNfc(navigation) {
@@ -58,6 +69,7 @@ export function escutarLeituraNfc(navigation) {
   NfcManager.registerTagEvent();
   NfcManager.setEventListener(NfcEvents.DiscoverTag, tag => {
     let message = extrairCodigoCarta(tag);
+    
     if (!message) {
       Vibration.vibrate(VIBRACAO_CARTA_INVALIDA);
       Tts.stop();
@@ -67,16 +79,20 @@ export function escutarLeituraNfc(navigation) {
 
     if (routeName !== 'Principal') {
       Vibration.vibrate(VIBRACAO_CARTA_VALIDA);
-      dizerResumoCarta(message);
+      
+      if (message === CODIGO_CARTA.AJUDA) {
+        navigation.navigate('Jogar', {cod: message});
+      } else {
+        dizerResumoCarta(message);
+      }
       return;
     }
 
+    Vibration.vibrate(VIBRACAO_CARTA_VALIDA);
     if (message !== CODIGO_CARTA.AJUDA) {
-      Vibration.vibrate(VIBRACAO_CARTA_VALIDA);
       navigation.navigate('Jogar', {cod: message});
     } else {
-      Vibration.vibrate(VIBRACAO_CARTA_VALIDA);
-      navigation.navigate('Ajuda', {cod: message});
+      navigation.navigate('Jogar', {cod: message});
     }
   });
 }

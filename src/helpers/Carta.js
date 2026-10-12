@@ -65,15 +65,28 @@ const CODIGOS_NORMALIZADOS = {
   aj1: CODIGO_CARTA.AJUDA,
 };
 
-export function normalizarCodigoCarta(valor) {
-  const texto = String(valor || '').replace(/[^a-zA-Z0-9]/g, '');
-  const match = texto.match(/(as1|cd1|cp1|dq1|em1|aj1)/i);
+export function normalizarCodigoCarta(texto) {
+  if (!texto) return null;
+  const limpo = String(texto).trim().toLowerCase();
 
-  if (!match) {
-    return '';
+  if (limpo.includes('dq') || limpo.includes('duque')) return CODIGO_CARTA.DUQUE;
+  if (limpo.includes('cp') || limpo.includes('capitao') || limpo.includes('capitão')) return CODIGO_CARTA.CAPITAO;
+  if (limpo.includes('as') || limpo.includes('assassino')) return CODIGO_CARTA.ASSASSINO;
+  if (limpo.includes('cd') || limpo.includes('condessa')) return CODIGO_CARTA.CONDESSA;
+  if (limpo.includes('em') || limpo.includes('embaixador')) return CODIGO_CARTA.EMBAIXADOR;
+  if (limpo.includes('ajuda') || limpo.includes('help') || limpo.includes('resumo') || limpo.includes('0')) {
+    return CODIGO_CARTA.AJUDA;
   }
 
-  return CODIGOS_NORMALIZADOS[match[1].toLowerCase()];
+
+  for (const key in CODIGO_CARTA) {
+    const valor = String(CODIGO_CARTA[key]).toLowerCase();
+    if (valor && limpo.includes(valor)) {
+      return CODIGO_CARTA[key];
+    }
+  }
+
+  return null;
 }
 
 export function obterCarta(codigo) {

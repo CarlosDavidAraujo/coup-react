@@ -6,7 +6,7 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "postinstall": "node scripts/fix-metro-blacklist.js",
-    "start": "react-native start",
+    "start": "cross-env NODE_OPTIONS=--openssl-legacy-provider react-native start",
     "test": "jest",
     "lint": "eslint ."
   },
@@ -25,6 +25,7 @@
     "@babel/runtime": "^7.6.3",
     "@react-native-community/eslint-config": "^0.0.5",
     "babel-jest": "^24.9.0",
+    "cross-env": "^10.1.0",
     "eslint": "^6.5.1",
     "jest": "^24.9.0",
     "metro-react-native-babel-preset": "^0.56.0",
